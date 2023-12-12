@@ -3,11 +3,13 @@ import { securityMiddleware } from './middlewares/securityMiddleware';
 import { rateLimitMiddleware } from './middlewares/rateLimitMiddleware';
 import routes from './routes';
 import connectDatabase from './database';
+import logRequests from './middlewares/logRequests';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-connectDatabase();
+app.use(logRequests);
+connectDatabase(); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
