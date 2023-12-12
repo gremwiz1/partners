@@ -1,10 +1,8 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { listUsers } from '../controllers/peopleController';
 
 const router = express.Router();
 
-router.get('/people', (req: Request, res: Response) => {
-  // Логика получения списка пользователей, исключая текущего пользователя
-  res.send('List of people');
-});
+router.get('/people', listUsers);
 
 export default router;
