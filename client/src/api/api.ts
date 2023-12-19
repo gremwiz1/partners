@@ -1,7 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { UserProfile } from "../utils/type";
-
-const API_BASE_URL = "http://localhost:4000";
+import { API_BASE_URL } from "../utils/const";
 
 export const registerUser = async (userData: UserProfile) => {
   try {

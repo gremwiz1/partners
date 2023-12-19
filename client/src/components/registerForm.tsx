@@ -10,13 +10,17 @@ import {
   Spin,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/api";
 import axios, { AxiosError } from "axios";
+import "dayjs/locale/ru";
+import locale from "antd/es/date-picker/locale/ru_RU";
+import { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
 
 const RegisterForm = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [fileList, setFileList] = useState<UploadFile<any>[]>([]);
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
@@ -40,13 +44,30 @@ const RegisterForm = () => {
     }
   };
 
+  const handleFileChange = ({
+    fileList,
+  }: UploadChangeParam<UploadFile<any>>) => {
+    setFileList(fileList);
+  };
+
+  const beforeUpload = (file: File) => {
+    const isAlreadyOneFile = fileList.length >= 1;
+    if (isAlreadyOneFile) {
+      message.error("Вы можете загрузить только одно изображение!");
+      return Upload.LIST_IGNORE;
+    }
+    return true;
+  };
+
   return (
     <Spin spinning={loading}>
+      <h2 style={{ textAlign: "center" }}>Регистрация</h2>
       <Form onFinish={handleSubmit} layout="vertical">
         <Form.Item
           name="name"
           label="Имя"
           rules={[{ required: true, message: "Введите ваше имя" }]}
+          className="form-item"
         >
           <Input placeholder="Имя" />
         </Form.Item>
@@ -57,6 +78,7 @@ const RegisterForm = () => {
           rules={[
             { required: true, message: "Введите ваш email", type: "email" },
           ]}
+          className="form-item"
         >
           <Input placeholder="Email" />
         </Form.Item>
@@ -65,6 +87,7 @@ const RegisterForm = () => {
           name="password"
           label="Пароль"
           rules={[{ required: true, message: "Введите пароль" }]}
+          className="form-item"
         >
           <Input.Password placeholder="Пароль" />
         </Form.Item>
@@ -73,14 +96,16 @@ const RegisterForm = () => {
           name="birthdate"
           label="Дата рождения"
           rules={[{ required: true, message: "Выберите дату рождения" }]}
+          className="form-item"
         >
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker style={{ width: "100%" }} locale={locale} />
         </Form.Item>
 
         <Form.Item
           name="gender"
           label="Пол"
           rules={[{ required: true, message: "Выберите пол" }]}
+          className="form-item"
         >
           <Radio.Group>
             <Radio value="male">Мужской</Radio>
@@ -88,8 +113,16 @@ const RegisterForm = () => {
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item name="profilePhoto" label="Фото профиля">
-          <Upload listType="picture">
+        <Form.Item
+          name="profilePhoto"
+          label="Фото профиля"
+          className="form-item"
+        >
+          <Upload
+            listType="picture"
+            beforeUpload={beforeUpload}
+            onChange={handleFileChange}
+          >
             <Button icon={<UploadOutlined />}>Загрузить фото</Button>
           </Upload>
         </Form.Item>
@@ -100,6 +133,9 @@ const RegisterForm = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div style={{ marginTop: "16px", textAlign: "center" }}>
+        Уже зарегистрированы? <Link to="/login">Войти</Link>
+      </div>
     </Spin>
   );
 };

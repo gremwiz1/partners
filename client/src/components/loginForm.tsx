@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, message, Spin } from "antd";
 import { loginUser } from "../api/api";
 import axios, { AxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
 const LoginForm = () => {
@@ -38,6 +38,7 @@ const LoginForm = () => {
 
   return (
     <Spin spinning={loading}>
+      <h2 style={{ textAlign: "center" }}>Вход в Систему</h2>
       <Form onFinish={handleSubmit}>
         <Form.Item
           name="email"
@@ -57,6 +58,9 @@ const LoginForm = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div style={{ marginTop: "16px", textAlign: "center" }}>
+        Ещё не зарегистрированы? <Link to="/register">Регистрация</Link>
+      </div>
     </Spin>
   );
 };
