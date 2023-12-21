@@ -24,8 +24,20 @@ const RegisterForm = () => {
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
+    const userData = {
+      name: values.name,
+      email: values.email,
+      birthdate: values.birthdate.format("YYYY-MM-DD"),
+      gender: values.gender,
+      password: values.password,
+    };
+
+    const profilePhotoFile =
+      values.profilePhoto && values.profilePhoto.file
+        ? values.profilePhoto.file.originFileObj
+        : undefined;
     try {
-      await registerUser(values);
+      await registerUser(userData, profilePhotoFile);
       message.success("Регистрация прошла успешно");
       navigate("/login");
     } catch (error) {

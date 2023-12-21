@@ -4,7 +4,7 @@ import ProfileEditForm from "../components/profileEditForm";
 const AccountPage = () => {
   return (
     <div>
-      <h1>Редактирование профиля</h1>
+      <h1>Профиль</h1>
       <ProfileEditForm />
     </div>
   );

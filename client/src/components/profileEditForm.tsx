@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Upload, message, DatePicker, Radio } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Upload,
+  message,
+  DatePicker,
+  Radio,
+  Avatar,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
@@ -14,9 +23,17 @@ const ProfileEditForm = () => {
   const [fileList, setFileList] = useState<UploadFile<any>[]>([]);
   const authContext = useAuth();
   const navigate = useNavigate();
-  const [profilePhoto, setProfilePhoto] = useState<string>();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | undefined>(
+    undefined
+  );
+
+  const toggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+  };
 
   useEffect(() => {
+    console.log(authContext);
     if (!authContext || !authContext.isAuthenticated) {
       navigate("/login");
     } else {
@@ -29,9 +46,20 @@ const ProfileEditForm = () => {
               birthdate: moment(profileData.birthdate),
               gender: profileData.gender,
             });
-            setId(profileData.id);
+            if (profileData.id) {
+              setId(profileData.id);
+            }
             if (profileData.profilePhoto) {
-              setProfilePhoto(profileData.profilePhoto);
+              setFileList([
+                {
+                  uid: "0",
+                  name: "profilePhoto.png",
+                  status: "done",
+                  url: profileData.profilePhoto,
+                  thumbUrl: profileData.profilePhoto,
+                },
+              ]);
+              setProfilePhotoUrl(profileData.profilePhoto);
             }
           }
         })
@@ -61,8 +89,31 @@ const ProfileEditForm = () => {
         : undefined;
 
     try {
-      await updateProfile(userData, profilePhotoFile);
+      const response = await updateProfile(userData, profilePhotoFile);
       message.success("Профиль успешно обновлен");
+      if (response && response.user) {
+        form.setFieldsValue({
+          name: response.user.name,
+          email: response.user.email,
+          birthdate: moment(response.user.birthdate),
+          gender: response.user.gender,
+        });
+
+        setId(response.user._id);
+
+        if (response.user.profilePhoto) {
+          setProfilePhotoUrl(response.user.profilePhoto);
+          setFileList([
+            {
+              uid: "-1",
+              name: "profilePhoto.png",
+              status: "done",
+              url: response.user.profilePhoto,
+            },
+          ]);
+        }
+      }
+      setIsEditMode(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
@@ -80,8 +131,26 @@ const ProfileEditForm = () => {
     }
   };
 
-  const handleFileChange = ({ fileList }: UploadChangeParam) => {
-    setFileList(fileList);
+  const handleFileChange = ({
+    fileList: newFileList,
+  }: UploadChangeParam<UploadFile<any>>) => {
+    setFileList(newFileList);
+  };
+
+  const beforeUpload = (file: File) => {
+    setFileList([]);
+    return true;
+  };
+
+  const handleLogout = () => {
+    if (authContext) {
+      authContext.logout();
+    }
+    navigate("/login");
+  };
+
+  const handleGoToPeople = () => {
+    navigate("/people");
   };
 
   return (
@@ -90,8 +159,9 @@ const ProfileEditForm = () => {
         name="name"
         label="Имя"
         rules={[{ required: true, message: "Введите ваше имя" }]}
+        className="form-item"
       >
-        <Input />
+        <Input disabled={!isEditMode} />
       </Form.Item>
 
       <Form.Item
@@ -100,52 +170,78 @@ const ProfileEditForm = () => {
         rules={[
           { required: true, type: "email", message: "Введите ваш email" },
         ]}
+        className="form-item"
       >
-        <Input />
+        <Input disabled={!isEditMode} />
       </Form.Item>
 
-      <Form.Item
-        name="password"
-        label="Новый пароль"
-        rules={[{ required: true, message: "Введите новый пароль" }]}
-      >
-        <Input.Password />
-      </Form.Item>
+      {isEditMode && (
+        <Form.Item
+          name="password"
+          label="Новый пароль"
+          rules={[{ required: false, message: "Введите новый пароль" }]}
+          className="form-item"
+        >
+          <Input.Password />
+        </Form.Item>
+      )}
 
       <Form.Item
         name="birthdate"
         label="Дата рождения"
         rules={[{ required: true, message: "Выберите дату рождения" }]}
+        className="form-item"
       >
-        <DatePicker style={{ width: "100%" }} />
+        <DatePicker style={{ width: "100%" }} disabled={!isEditMode} />
       </Form.Item>
 
-      <Form.Item name="gender" label="Пол">
-        <Radio.Group>
+      <Form.Item name="gender" label="Пол" className="form-item">
+        <Radio.Group disabled={!isEditMode}>
           <Radio value="male">Мужской</Radio>
           <Radio value="female">Женский</Radio>
-          <Radio value="other">Другой</Radio>
         </Radio.Group>
       </Form.Item>
+      {!isEditMode && profilePhotoUrl && (
+        <Avatar size={64} src={profilePhotoUrl} />
+      )}
 
-      <Form.Item name="profilePhoto" label="Фото профиля">
-        <Upload
-          listType="picture-card"
-          fileList={fileList}
-          onChange={handleFileChange}
-          beforeUpload={() => false}
+      {isEditMode && (
+        <Form.Item
+          name="profilePhoto"
+          label="Фото профиля"
+          className="form-item"
         >
-          {fileList.length < 1 && profilePhoto ? (
-            <img src={profilePhoto} alt="Profile" style={{ width: "100px" }} />
-          ) : (
-            <Button icon={<UploadOutlined />}>Загрузить фото</Button>
-          )}
-        </Upload>
-      </Form.Item>
+          <Upload
+            listType="picture"
+            beforeUpload={beforeUpload}
+            onChange={handleFileChange}
+            fileList={fileList}
+          >
+            <Button icon={<UploadOutlined />}>Загрузить новое фото</Button>
+          </Upload>
+        </Form.Item>
+      )}
 
       <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Обновить профиль
+        <Button onClick={toggleEditMode}>
+          {isEditMode ? "Отменить редактирование" : "Редактировать профиль"}
+        </Button>
+      </Form.Item>
+      {isEditMode && (
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Обновить профиль
+          </Button>
+        </Form.Item>
+      )}
+      <Form.Item>
+        <Button type="default" onClick={handleLogout}>
+          Выход
+        </Button>
+      </Form.Item>
+      <Form.Item>
+        <Button type="default" onClick={handleGoToPeople}>
+          Люди
         </Button>
       </Form.Item>
     </Form>

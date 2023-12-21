@@ -43,7 +43,7 @@ const UserCards = () => {
   }, [authContext, navigate]);
 
   return (
-    <div>
+    <div style={{ display: "flex", flexWrap: "wrap" }}>
       {users.map((user) => (
         <Card key={user.id} title={user.name}>
           {user.birthdate && (
