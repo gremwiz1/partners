@@ -2,13 +2,16 @@ import { Request, Response } from "express";
 import User from "../models/user";
 
 const listUsers = async (req: Request, res: Response) => {
-  if (!req.user || !req.user.userId) {
+  const user = res.locals.user;
+  if (!user || !user.userId) {
     return res.status(401).json({ message: "Нет доступа" });
   }
 
   try {
-    const currentUserId = req.user.userId;
-    const users = await User.find({ _id: { $ne: currentUserId } }).select("-password"); 
+    const currentUserId = user.userId;
+    const users = await User.find({ _id: { $ne: currentUserId } }).select(
+      "-password"
+    );
 
     res.json(users);
   } catch (error) {
