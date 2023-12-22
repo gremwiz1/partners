@@ -8,7 +8,7 @@
 ### Серверная часть
 
 1. Клонируйте репозиторий:
-git clone [https://github.com/gremwiz1/partners.git]
+git clone https://github.com/gremwiz1/partners.git
 
 2. Перейдите в папку сервера:
 cd server
